@@ -6,10 +6,12 @@ local user_id = ARGV[1]
 local now = tonumber(ARGV[2]) or tonumber(redis.call('TIME')[1])
 local campaign_id = ARGV[3]
 
+-- checking user eligibility
 if redis.call('SISMEMBER', opened_key, user_id) == 1 then
     return {'ALREADY_OPENED', 0}
 end
 
+-- checking campaign availability
 local window = redis.call('HMGET', window_key, 'start', 'end')
 if window[1] == false or window[2] == false then
     return {'CAMPAIGN_NOT_FOUND', 0}
@@ -26,6 +28,7 @@ if now < start_ts or now > end_ts then
 end
 
 math.randomseed(now)
+
 
 local amounts = redis.call('SMEMBERS', amounts_key)
 if #amounts == 0 then
